@@ -52,4 +52,4 @@ export const activitySchema = new Schema<IActivity, ActivityModel>({
 activitySchema.index({user: 1, createdAt: -1})
 activitySchema.index({note: 1, createdAt: -1})
 
-export const Activiy = mongoose.model<IActivity, ActivityModel>("Activity", activitySchema)
+export const Activity = mongoose.model<IActivity, ActivityModel>("Activity", activitySchema)

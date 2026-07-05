@@ -19,7 +19,7 @@ export interface AuthResult{
 }
 
 export async function registerUser(input: RegisterInput): Promise<AuthResult>{
-  const existingUser = await User.findOne({email: input.email})
+  const existingUser = await User.findOne({email: input.email.toLocaleLowerCase()})
 
   if(existingUser){
     throw new ApiError(409, "User already exists")
@@ -35,7 +35,7 @@ export async function registerUser(input: RegisterInput): Promise<AuthResult>{
 }
 
 export async function loginUser(email: string, password: string): Promise<AuthResult>{
-  const user = await User.findOne({email}).select("+password")
+  const user = await User.findOne({email: email.toLocaleLowerCase()}).select("+password")
 
   if(!user){
     throw new ApiError(401, "Invalid email or password")
