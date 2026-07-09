@@ -1,6 +1,6 @@
 import { IUser, User } from "../models/User"
 import { ApiError } from "../utils/api-error"
-import { generateAccessToken, generateRefreshToken } from "../utils/jwt"
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/jwt"
 
 export interface RegisterInput{
   name: string,
@@ -65,4 +65,22 @@ function buildAuthResult(user: IUser & {_id: any}): AuthResult{
     accessToken,
     refreshToken
   }
+}
+
+export async function refreshAccessToken(refreshToken: string): Promise<string>{
+  let payload;
+
+  try{
+    payload = verifyRefreshToken(refreshToken)
+  }catch(error){
+    throw new ApiError(401, "Invalid or expired refresh token. Please log in again")
+  }
+
+  const user = await User.findById(payload.userId)
+
+  if(!user){
+    throw new ApiError(401, "User no longer exist")
+  }
+
+  return generateAccessToken({userId: payload.userId})
 }

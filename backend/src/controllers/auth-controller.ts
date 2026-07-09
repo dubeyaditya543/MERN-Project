@@ -1,5 +1,6 @@
 import { env } from "../config/env";
-import { loginUser, registerUser } from "../services/auth-service";
+import { loginUser, refreshAccessToken, registerUser } from "../services/auth-service";
+import { ApiError } from "../utils/api-error";
 import { catchAsync } from "../utils/catch-async";
 import { Request, Response } from "express";
 
@@ -39,5 +40,20 @@ export const logout = catchAsync(async (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     message: "Logged out successfully"
+  })
+})
+
+export const refresh = catchAsync(async (req: Request, res: Response) => {
+  const refreshToken = req.cookies.refreshToken
+
+  if(!refreshToken){
+    throw new ApiError(401, "No refresh token provided. Please log in")
+  }
+
+  const accessToken = await refreshAccessToken(refreshToken)
+
+  res.status(200).json({
+    success: true,
+    data: {accessToken}
   })
 })
