@@ -109,3 +109,25 @@ export const searchNotes = catchAsync(
     });
   },
 );
+
+export const getTagFrequency = catchAsync(
+  async (req: express.Request, res: express.Response) => {
+    const tags = await noteService.getTagFrequency(req.userId!);
+
+    res.status(200).json({
+      success: true,
+      data: { tags },
+    });
+  },
+);
+
+export const getCategoryBreakdown = catchAsync(
+  async (req: express.Request, res: express.Response) => {
+    const breakdown = await noteService.getCategoryBreakdown(req.userId!)
+
+    res.status(200).json({
+      success: true,
+      data: {breakdown}
+    })
+  },
+);

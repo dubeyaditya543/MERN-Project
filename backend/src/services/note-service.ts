@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Activity, ActivityAction } from "../models/Activity";
 import { Note } from "../models/Note";
 import { ApiError } from "../utils/api-error";
@@ -141,4 +142,78 @@ export async function searchNotes(userId: string, query: string) {
       score: { meta: "textscore" },
     },
   ).sort({ score: { $meta: "textscore" } });
+}
+
+export async function getTagFrequency(userId: string){
+  return Note.aggregate([
+    {
+      $match: {
+        owner: new mongoose.Types.ObjectId(userId),
+        isArchived: false
+      }
+    },
+    {
+      $unwind: "$tags"
+    },
+    {
+      $group: {
+        _id: "$tags",
+        count: {$sum: 1}
+      }
+    },
+    {
+      $sort: {count: -1}
+    },
+    {
+      $limit: 20
+    },
+    {
+      $project: {
+        _id: 0,
+        tag: "$_id",
+        count: 1
+      }
+    }
+  ])
+}
+
+export async function getCategoryBreakdown(userId: string){
+  return Note.aggregate([
+    {
+      $match: {
+        owner: new mongoose.Types.ObjectId(userId),
+        isArchived: false
+      }
+    },
+    {
+      $group: {
+        _id: "$category",
+        count: {$sum: 1}
+      }
+    },
+    {
+      $lookup: {
+        from: "categories",
+        localField: "_id",
+        foreignField: "_id",
+        as: "categoryInfo"
+      }
+    },
+    {
+      $unwind: {
+        path: "$categoryInfo",
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        categoryId: "$_id",
+        name: {$ifNull: ["$categoryInfo.name", "Uncategorized"]},
+        color: {$ifNull: ["$categoryInfo.color", "#94a3b8"]},
+        count: 1
+      }
+    },
+    {$sort: {count: -1}}
+  ])
 }
